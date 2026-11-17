@@ -60,6 +60,32 @@ $ clickhouse-sql-parser -beautify "SELECT * FROM clickhouse WHERE a=100"
 $ clickhouse-sql-parser -f ./test.sql
 ```
 
+## Inspect ClickHouse-specific dialect constructs
+
+The `-dialect` flag suppresses AST and formatted output and instead lists
+the ClickHouse-specific type names, clause keywords and function names
+that need attention before moving the statement to another SQL engine.
+Each line is `line:column: category: original → suggestion`, ordered by
+source position; constructs inside string literals and comments are not
+reported.
+
+```
+$ clickhouse-sql-parser -dialect "SELECT toString(a), uniq(b) FROM t3 PREWHERE c = 2"
+1:8: 函数: toString → ClickHouse 专有函数，需改用标准函数或 CAST 表达式
+1:21: 函数: uniq → ClickHouse 专有函数，需改用标准函数或 CAST 表达式
+1:37: 子句: PREWHERE → ClickHouse 专有子句，标准 SQL 无对应写法，需改写语句结构
+```
+
+The same inspection is available as a library:
+
+```Go
+stmts, err := clickhouse.NewParser(sql).ParseStmts()
+if err != nil {
+    return nil, err
+}
+findings := dialect.Inspect(sql, stmts)
+```
+
 ### Beautify SQL Example
 
 The `-beautify` flag formats SQL with proper indentation and line breaks, making complex queries more readable:
