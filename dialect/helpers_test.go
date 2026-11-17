@@ -32,15 +32,30 @@ func onlyCategory(findings []Finding, category Category) []Finding {
 // tables do not hand-count offsets.
 func expectedTypeFindings(t *testing.T, sql string, names []string) []Finding {
 	t.Helper()
+	return expectedFindings(t, sql, names, CategoryType, suggestionType)
+}
+
+// expectedFunctionFindings builds the expected single-line function
+// findings for names in source order, deriving columns from the SQL
+// itself.
+func expectedFunctionFindings(t *testing.T, sql string, names []string) []Finding {
+	t.Helper()
+	return expectedFindings(t, sql, names, CategoryFunction, suggestionFunction)
+}
+
+// expectedFindings builds single-line findings for names in source
+// order, deriving each column from the SQL itself.
+func expectedFindings(t *testing.T, sql string, names []string, category Category, suggestion string) []Finding {
+	t.Helper()
 	var out []Finding
 	for _, name := range names {
 		for _, column := range findColumns(t, sql, name) {
 			out = append(out, Finding{
 				Line:       1,
 				Column:     column,
-				Category:   CategoryType,
+				Category:   category,
 				Original:   name,
-				Suggestion: suggestionType,
+				Suggestion: suggestion,
 			})
 		}
 	}
