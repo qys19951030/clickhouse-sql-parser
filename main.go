@@ -8,6 +8,7 @@ import (
 	"runtime/debug"
 	"strings"
 
+	"github.com/AfterShip/clickhouse-sql-parser/dialect"
 	clickhouse "github.com/AfterShip/clickhouse-sql-parser/parser"
 )
 
@@ -59,12 +60,14 @@ var options struct {
 	file     string
 	format   bool
 	beautify bool
+	dialect  bool
 	version  bool
 }
 
 func init() {
 	flag.BoolVar(&options.format, "format", false, "Print formatted ClickHouse SQL")
 	flag.BoolVar(&options.beautify, "beautify", false, "Beautify print the ClickHouse SQL")
+	flag.BoolVar(&options.dialect, "dialect", false, "Print ClickHouse-specific constructs instead of AST or formatted SQL")
 	flag.StringVar(&options.file, "f", "", "Parse SQL from file")
 	flag.BoolVar(&options.help, "h", false, "Print help message")
 	flag.BoolVar(&options.version, "v", false, "Print version")
@@ -101,6 +104,14 @@ func main() {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "parse statements error: %s\n", err.Error())
 		os.Exit(1)
+	}
+	if options.dialect {
+		for _, finding := range dialect.Inspect(string(inputBytes), stmts) {
+			fmt.Printf("%d:%d: %s: %s → %s\n",
+				finding.Line, finding.Column, finding.Category,
+				finding.Original, finding.Suggestion)
+		}
+		return
 	}
 	if !options.format && !options.beautify { // print AST
 		bytes, _ := json.MarshalIndent(stmts, "", "  ") // nolint
