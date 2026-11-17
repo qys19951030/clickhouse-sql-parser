@@ -45,5 +45,10 @@ type Finding struct {
 // recover the original spelling of constructs whose AST only records a
 // boolean marker.
 func Inspect(input string, statements []clickhouse.Expr) []Finding {
-	return nil
+	var findings []Finding
+	findings = inspectTypes(input, statements, findings)
+	findings = inspectClauses(input, statements, findings)
+	findings = inspectFunctions(input, statements, findings)
+	sortFindings(findings)
+	return findings
 }
