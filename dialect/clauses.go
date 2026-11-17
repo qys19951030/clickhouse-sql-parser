@@ -189,7 +189,9 @@ func inspectClauses(input string, statements []clickhouse.Expr, findings []Findi
 				}
 			case *clickhouse.OptimizeStmt:
 				if n.HasFinal {
-					if pos := findKeywordAtOrAfter(tokens, 0, "FINAL"); pos >= 0 {
+					// Anchor at the statement's own start so a FINAL in an
+					// earlier statement cannot be matched instead.
+					if pos := findKeywordAtOrAfter(tokens, int(n.OptimizePos), "FINAL"); pos >= 0 {
 						emit(pos, "FINAL")
 					}
 				}

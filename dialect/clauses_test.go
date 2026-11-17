@@ -101,6 +101,14 @@ func TestClauses(t *testing.T) {
 			},
 		},
 		{
+			name: "OPTIMIZE FINAL anchors at its own statement, not an earlier FINAL",
+			sql:  "SELECT * FROM a FINAL; OPTIMIZE TABLE b FINAL",
+			expected: []Finding{
+				{Line: 1, Column: 17, Category: CategoryClause, Original: "FINAL", Suggestion: suggestionClause},
+				{Line: 1, Column: 41, Category: CategoryClause, Original: "FINAL", Suggestion: suggestionClause},
+			},
+		},
+		{
 			name:     "lowercase clause spelling does not match",
 			sql:      "SELECT * FROM t final",
 			expected: nil,
